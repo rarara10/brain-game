@@ -114,6 +114,9 @@
   let displayTimeout = null;
   let prevGameState = state.gameState;
   let lastDisplayIndexTone = -1;
+  const DISPLAY_ON_MS = 600;
+  const DISPLAY_GAP_MS = 600;
+  let lastPointerActionAt = 0;
 
   const clearCountdownTimer = () => {
     if (countdownTimeout) {
@@ -181,14 +184,14 @@
       }
       displayTimeout = setTimeout(() => {
         setState({ showNumber: false });
-      }, 800);
+      }, DISPLAY_ON_MS);
     } else {
       displayTimeout = setTimeout(() => {
         setState({
           displayIndex: state.displayIndex + 1,
           showNumber: true
         });
-      }, 200);
+      }, DISPLAY_GAP_MS);
     }
   };
 
@@ -343,7 +346,6 @@
       <div class="glass-card max-w-md w-full p-6 space-y-5">
         <div class="flex justify-between items-center">
           <h2 class="h-title flex items-center gap-2">
-            ${icon('RULE')}
             ルール説明
           </h2>
           <button data-action="close-rules" class="icon-ghost" aria-label="閉じる">
@@ -358,7 +360,6 @@
           <ul class="list-disc list-inside text-sm text-slate-600">
             <li>全問正解でレベルアップ</li>
             <li>正答率が低いとレベルダウン</li>
-            <li>Enterで決定 / Backspaceで削除</li>
           </ul>
         </div>
 
@@ -378,22 +379,24 @@
 
     return `
       <div class="app-bg min-h-screen flex items-center justify-center p-4">
-        <div class="glass-card max-w-md w-full p-8 space-y-6 relative">
+        <div class="glass-card max-w-md w-full p-6 space-y-4 relative">
           <div class="badge">
             <img src="./favicon.ico" alt="タイトルアイコン" class="badge__img" />
           </div>
 
-          <div class="text-center space-y-2">
-            <h1 class="h-hero">カビ島教授の鬼トレ</h1>
+          <div class="text-center space-y-1">
+            <h1 class="h-hero">
+              かびしま教授のもの凄く脳を<br>
+              鍛える鬼トレーニング
+            </h1>
             <p class="text-slate-600 text-sm">ワーキングメモリ強化（逆順入力）</p>
           </div>
 
-          <div class="space-y-4">
+          <div class="space-y-3">
             <div class="panel">
               <div class="flex items-center justify-between">
                 <div>
                   <div class="panel__title">開始レベル</div>
-                  <div class="panel__sub">3〜20</div>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -413,11 +416,9 @@
               </div>
             </div>
 
-            <div class="panel">
+            <div class="panel duration-row">
               <div class="panel__title">制限時間</div>
-              <div class="panel__sub">セッションの長さ</div>
-
-              <div class="seg mt-3" role="tablist" aria-label="制限時間">
+              <div class="seg duration-seg" role="tablist" aria-label="制限時間">
                 ${durationOptions
                   .map((opt) => {
                     const active = state.gameDuration === opt.sec;
@@ -440,12 +441,10 @@
 
             <div class="flex gap-2">
               <button data-action="toggle-sound" class="btn-soft flex-1">
-                ${icon(state.soundEnabled ? 'ON' : 'OFF')}
                 音: ${state.soundEnabled ? 'ON' : 'OFF'}
               </button>
 
               <button data-action="show-rules" class="btn-soft flex-1">
-                ${icon('RULE')}
                 ルール
               </button>
             </div>
@@ -453,7 +452,7 @@
 
           <button data-action="start" class="btn-cta">
             <span class="btn-cta__glow"></span>
-            ${icon('PLAY')} スタート
+            スタート
           </button>
         </div>
       </div>
@@ -570,7 +569,7 @@
 
           <button data-action="next-round" class="btn-cta">
             <span class="btn-cta__glow"></span>
-            次へ進む ${icon('NEXT')}
+            次へ進む
           </button>
         </div>
       `
@@ -578,7 +577,7 @@
         ${state.gameState === 'countdown'
           ? `
             <div class="text-center">
-              <div class="big-num animate-pulse">${state.countdownVal}</div>
+                <div class="big-num big-num--countdown animate-pulse">${state.countdownVal}</div>
               <p class="text-slate-600 mt-3">準備...</p>
             </div>
           `
@@ -609,10 +608,9 @@
                         : ''}
                     </div>
 
-                    <p class="text-xs text-slate-500">キーボード: 0-9 / Enter=決定 / Backspace=削除</p>
                   </div>
 
-                  <div class="grid grid-cols-3 gap-3">
+                  <div class="keypad grid grid-cols-3 gap-3">
                     ${[1, 2, 3, 4, 5, 6, 7, 8, 9]
                       .map(
                         (num) => `
@@ -646,21 +644,16 @@
     return `
       <div class="app-bg min-h-screen flex flex-col p-4">
         <button data-action="quit" class="quit-btn" title="ゲームを終了する">
-          ${icon('QUIT')}
           <span class="font-extrabold">終了</span>
         </button>
 
         <div class="flex justify-between items-center mb-6 relative z-10">
-          <div class="flex items-center gap-2 font-mono text-xl font-extrabold text-slate-800">
-            ${icon('TIME')}
-            ${formatTime(state.timeLeft)}
+          <div class="w-[64px]"></div>
+          <div class="flex items-center gap-2">
+            <div class="chip">Level ${state.digitCount}</div>
+            <div class="chip">${formatTime(state.timeLeft)}</div>
           </div>
-
-          <div class="chip">Level ${state.digitCount}</div>
-          <button data-action="back-to-title" class="ghost-btn" aria-label="タイトルに戻る">
-            ${icon('HOME')}
-            タイトル
-          </button>
+          <div class="w-[64px]"></div>
         </div>
 
         <div class="flex-1 flex flex-col items-center justify-center w-full max-w-md mx-auto">
@@ -687,13 +680,7 @@
     }
   };
 
-  root.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action]');
-    if (!target) return;
-
-    const action = target.getAttribute('data-action');
-    const value = target.getAttribute('data-value');
-
+  const handleAction = (action, value) => {
     switch (action) {
       case 'close-rules':
         setState({ gameState: 'setup' });
@@ -719,9 +706,6 @@
       case 'back-to-setup':
         setState({ gameState: 'setup' });
         break;
-      case 'back-to-title':
-        setState({ gameState: 'setup' });
-        break;
       case 'quit':
         quitGame();
         break;
@@ -740,6 +724,25 @@
       default:
         break;
     }
+  };
+
+  root.addEventListener('pointerup', (event) => {
+    if (event.pointerType !== 'touch') return;
+    const target = event.target.closest('[data-action]');
+    if (!target) return;
+    const action = target.getAttribute('data-action');
+    const value = target.getAttribute('data-value');
+    lastPointerActionAt = Date.now();
+    handleAction(action, value);
+  });
+
+  root.addEventListener('click', (event) => {
+    if (Date.now() - lastPointerActionAt < 450) return;
+    const target = event.target.closest('[data-action]');
+    if (!target) return;
+    const action = target.getAttribute('data-action');
+    const value = target.getAttribute('data-value');
+    handleAction(action, value);
   });
 
   render();
